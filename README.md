@@ -1,16 +1,32 @@
-# React + Vite
+# 🚀 FITNESS ENGINE PRO
+### AI-Powered Body Recomposition Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Fitness Engine Pro** es una plataforma SaaS moderna diseñada para atletas que buscan precisión en su transformación física. Combina el seguimiento de métricas críticas (Nutrición, Entrenamiento, Movilidad) con la potencia de la Inteligencia Artificial para ofrecer una experiencia de usuario fluida y orientada a resultados.
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## React Compiler
+## 🛠️ Tech Stack
+- [cite_start]**Frontend:** React 18 + Vite (Ultra Fast Build Tool) [cite: 206, 210]
+- [cite_start]**Styling:** Tailwind CSS v4 (Design Systems) [cite: 210, 237]
+- [cite_start]**Icons:** Lucide React [cite: 206]
+- [cite_start]**Architecture:** Modular Components & Custom Hooks [cite: 311, 330, 367]
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## ✨ Key Features
+- **Mobile-First Design:** Interfaz optimizada para el uso en el gimnasio.
+- [cite_start]**AI Coach Bridge:** Generador de reportes en lenguaje natural para integración con LLMs. [cite: 212, 391]
+- **Advanced Tracking:**
+  - [cite_start]**Nutrition:** Control de macros con sistema de semáforo calórico. [cite: 228, 234, 250]
+  - [cite_start]**Training:** Registro de volumen, sets y Personal Records (PRs) sincronizado con Hevy. [cite: 282, 286, 291]
+  - [cite_start]**Mobility:** Seguimiento de rutas GPS y actividad aeróbica. [cite: 313, 319]
+- **Data Persistence:** Almacenamiento local (LocalStorage) para privacidad y uso offline.
 
-## Expanding the ESLint configuration
+## 🏗️ Arquitectura del Proyecto
+El proyecto sigue principios de **Clean Code** y separación de responsabilidades:
+- [cite_start]`/components`: UI Atómica y vistas modulares. [cite: 207, 209, 223]
+- [cite_start]`/hooks`: Lógica de negocio y persistencia de datos. [cite: 367]
+- [cite_start]`/data`: Estructuras de datos iniciales y tipos. [cite: 349]
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Instalación
+1. Clonar el repositorio.
+2. `npm install`
+3. `npm run dev`
