@@ -1,0 +1,171 @@
+{
+    "metadata": {
+        "user": "Sergio",
+        "goal": "Recomposición Corporal (Meta 75kg)",
+        "version": "2026.PRO",
+        "lastUpdate": "2026-02-15T00:00:00Z"
+    },
+    "weeks": [
+        {
+            "weekLabel": "Semana 09/02 - 15/02",
+            "nutritionData": [
+                {
+                    "day": "Lunes",
+                    "date": "09/02",
+                    "totalKcal": 2250,
+                    "summary": "Día Sólido. Comida casera y buena proteína.",
+                    "meals": [
+                        {
+                            "type": "Desayuno",
+                            "item": "Pan con Mortadela y Queso",
+                            "kcal": 650
+                        },
+                        {
+                            "type": "Almuerzo",
+                            "item": "Pollo con Crema de Leche",
+                            "kcal": 850
+                        },
+                        {
+                            "type": "Cena",
+                            "item": "Pasta con Huevo",
+                            "kcal": 750
+                        }
+                    ]
+                },
+                {
+                    "day": "Viernes",
+                    "date": "13/02",
+                    "totalKcal": 2491,
+                    "summary": "Carga pre-entreno y alta densidad proteica.",
+                    "meals": [
+                        {
+                            "type": "Desayuno",
+                            "item": "Pan + 4 Huevos",
+                            "kcal": 910
+                        },
+                        {
+                            "type": "Gym",
+                            "item": "Rockstars (Energía)",
+                            "kcal": 320
+                        },
+                        {
+                            "type": "Almuerzo",
+                            "item": "21 Piezas Sushi",
+                            "kcal": 1001
+                        },
+                        {
+                            "type": "Cena",
+                            "item": "Batido Frappé",
+                            "kcal": 260
+                        }
+                    ]
+                },
+                {
+                    "day": "Sábado",
+                    "date": "14/02",
+                    "totalKcal": 2678,
+                    "summary": "Récord de Proteína (204g) alcanzado para carga de Basketball.",
+                    "meals": [
+                        {
+                            "type": "Desayuno",
+                            "item": "Huevos (3u) + Avena (100g) + Cambur",
+                            "kcal": 672
+                        },
+                        {
+                            "type": "Suplemento",
+                            "item": "Proteína Lifesystem (1 scoop)",
+                            "kcal": 110
+                        },
+                        {
+                            "type": "Almuerzo",
+                            "item": "Pollo (150g) + Arroz (250g) + Vegetales",
+                            "kcal": 532
+                        },
+                        {
+                            "type": "Cena",
+                            "item": "Pasta (100g) + Carne Molida (221g)",
+                            "kcal": 896
+                        },
+                        {
+                            "type": "Snack",
+                            "item": "Cotufas (40g Maíz)",
+                            "kcal": 140
+                        },
+                        {
+                            "type": "Ajuste",
+                            "item": "Aceites y Salsas (MFP)",
+                            "kcal": 328
+                        }
+                    ]
+                }
+            ],
+            "trainingData": {
+                "4": {
+                    "hasData": true,
+                    "title": "Torso B + Pierna B",
+                    "focus": "Compensación + Récords 🏆",
+                    "duration": "1h 23min",
+                    "volume": "6,175 kg",
+                    "sets": 25,
+                    "notes": "Sesión monstruosa. Récords en Jalón al pecho y volumen alto.",
+                    "exercises": [
+                        {
+                            "name": "Jalón al Pecho",
+                            "note": "🏆 PR 45kg x 10",
+                            "sets": [
+                                {
+                                    "weight": "40 kg",
+                                    "reps": 12
+                                },
+                                {
+                                    "weight": "45 kg",
+                                    "reps": 10
+                                },
+                                {
+                                    "weight": "40 kg",
+                                    "reps": 10
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Remo Sentado",
+                            "sets": [
+                                {
+                                    "weight": "35 kg",
+                                    "reps": 10
+                                },
+                                {
+                                    "weight": "40 kg",
+                                    "reps": 8
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Zancadas",
+                            "sets": [
+                                {
+                                    "weight": "10 kg",
+                                    "reps": "12m"
+                                },
+                                {
+                                    "weight": "10 kg",
+                                    "reps": "12m"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "mobilityData": [
+                {
+                    "day": "Viernes",
+                    "date": "13/02",
+                    "activity": "Ruta Centro",
+                    "duration": "38 min",
+                    "distance": "2.1 km",
+                    "notes": "Galerías Ávila -> Iglesia -> Bloque 3"
+                }
+            ]
+        }
+    ]
+}
