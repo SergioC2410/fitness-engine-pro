@@ -11,88 +11,118 @@ const DAY_ORDER = {
   Domingo: 7,
 };
 
-/**
- * Función auxiliar para fusionar arrays de Nutrición sin perder datos.
- * Si el día existe en el nuevo, lo actualiza. Si no, mantiene el viejo.
- */
+// 1. EXTRAEMOS LA LECTURA INICIAL PARA QUE SEA SEGURA Y SÍNCRONA
+function getInitialData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch (error) {
+    console.error("Error init LocalStorage:", error);
+    return [];
+  }
+}
+
+// 2. 🔥 NUEVO ALGORITMO: DETECTOR DE SEMANA ACTUAL
+function getWeekIndexForToday(data) {
+  if (!data || data.length === 0) return 0;
+
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2, "0");
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const todayStr = `${dd}/${mm}`; // Ej: "19/02"
+
+  // Búsqueda 1: ¿Alguien ya registró comida o caminata con la fecha de hoy?
+  const exactIndex = data.findIndex(
+    (week) =>
+      week.nutritionData?.some((d) => d.date === todayStr) ||
+      week.mobilityData?.some((d) => d.date === todayStr),
+  );
+  if (exactIndex !== -1) return exactIndex;
+
+  // Búsqueda 2: ¿Hoy cae dentro del rango de la etiqueta weekLabel? (Ej: "Semana 16/02 - 22/02")
+  today.setHours(0, 0, 0, 0);
+  const currentYear = today.getFullYear();
+
+  for (let i = 0; i < data.length; i++) {
+    const match = data[i].weekLabel.match(
+      /(\d{2})\/(\d{2}).*?(\d{2})\/(\d{2})/,
+    );
+    if (match) {
+      const startDay = parseInt(match[1], 10);
+      const startMonth = parseInt(match[2], 10) - 1;
+      const endDay = parseInt(match[3], 10);
+      const endMonth = parseInt(match[4], 10) - 1;
+
+      const startDate = new Date(currentYear, startMonth, startDay);
+      let endDate = new Date(currentYear, endMonth, endDay);
+
+      // Ajuste automático por si la semana cruza de Diciembre a Enero
+      if (endMonth < startMonth) {
+        endDate.setFullYear(currentYear + 1);
+        if (today.getMonth() === 0) startDate.setFullYear(currentYear - 1);
+      }
+
+      if (today >= startDate && today <= endDate) {
+        return i;
+      }
+    }
+  }
+
+  // Búsqueda 3: Si todo lo anterior falla, vamos a la semana más reciente
+  return data.length - 1;
+}
+
+// --- FUNCIONES DE FUSIÓN DE DATOS ---
 function mergeNutrition(oldNutri = [], newNutri = []) {
   const mergedMap = new Map();
-
-  // 1. Ponemos los datos viejos en el mapa primero
   oldNutri.forEach((item) => mergedMap.set(item.day, item));
-
-  // 2. Sobrescribimos o añadimos los datos nuevos
   newNutri.forEach((item) => {
-    // Si ya existe el día, fusionamos las propiedades (ej. mantiene notas viejas si no hay nuevas)
     const existing = mergedMap.get(item.day) || {};
     mergedMap.set(item.day, { ...existing, ...item });
   });
-
-  // 3. Convertimos a array y ordenamos
   return Array.from(mergedMap.values()).sort(
     (a, b) => (DAY_ORDER[a.day] || 99) - (DAY_ORDER[b.day] || 99),
   );
 }
 
-/**
- * Función auxiliar para fusionar Movilidad (evitando duplicados exactos)
- */
 function mergeMobility(oldMob = [], newMob = []) {
-  // Usamos un Set para identificar entradas únicas basadas en Día + Actividad
   const uniqueKeys = new Set();
   const result = [];
-
-  // Función interna para procesar items
   const process = (list) => {
     list.forEach((item) => {
-      const key = `${item.day}-${item.activity}-${item.distance}`; // Clave única
+      const key = `${item.day}-${item.activity}-${item.distance}`;
       if (!uniqueKeys.has(key)) {
         uniqueKeys.add(key);
         result.push(item);
       }
     });
   };
-
-  // Procesamos nuevos primero (prioridad) y luego viejos
   process(newMob);
   process(oldMob);
-
   return result.sort(
     (a, b) => (DAY_ORDER[a.day] || 99) - (DAY_ORDER[b.day] || 99),
   );
 }
 
-// Helper function to merge a single week (moved out to reduce nesting)
 function mergeWeek(updatedData, incomingWeek) {
-  // Buscamos si ya tenemos esta semana (por etiqueta)
   const index = updatedData.findIndex(
     (w) => w.weekLabel === incomingWeek.weekLabel,
   );
-
   if (index === -1) {
-    // ESCENARIO 1: Semana Nueva -> La agregamos tal cual
     updatedData.push(incomingWeek);
   } else {
-    // ESCENARIO 2: Semana Existente -> FUSIÓN INTELIGENTE
     const existingWeek = updatedData[index];
-
     updatedData[index] = {
-      ...existingWeek, // Mantener propiedades base viejas
-      ...incomingWeek, // Sobrescribir propiedades base nuevas (ej. metadata)
-
-      // Fusión específica por módulos
+      ...existingWeek,
+      ...incomingWeek,
       nutritionData: mergeNutrition(
         existingWeek.nutritionData,
         incomingWeek.nutritionData,
       ),
-
-      // Training: Fusionamos objetos (las claves nuevas sobrescriben las viejas)
       trainingData: {
         ...existingWeek.trainingData,
         ...incomingWeek.trainingData,
       },
-
-      // Mobility: Fusionamos arrays evitando duplicados
       mobilityData: mergeMobility(
         existingWeek.mobilityData,
         incomingWeek.mobilityData,
@@ -101,18 +131,16 @@ function mergeWeek(updatedData, incomingWeek) {
   }
 }
 
+// --- HOOK PRINCIPAL ---
 export function useFitnessData() {
-  const [appData, setAppData] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.error("Error init LocalStorage:", error);
-      return [];
-    }
-  });
+  const [appData, setAppData] = useState(getInitialData);
 
-  const [activeWeek, setActiveWeek] = useState(0);
+  // 🔥 SOLUCIÓN DEL BUG: Inicializamos activeWeek calculando la fecha de hoy
+  // sobre los datos recién extraídos, asegurando que nunca vuelva al índice 0 por error.
+  const [activeWeek, setActiveWeek] = useState(() => {
+    const initialData = getInitialData();
+    return getWeekIndexForToday(initialData);
+  });
 
   useEffect(() => {
     if (appData.length > 0) {
@@ -125,61 +153,124 @@ export function useFitnessData() {
     [appData, activeWeek],
   );
 
-  const handleExport = useCallback(() => {
-    if (appData.length === 0) return;
-    const dataStr = JSON.stringify(appData, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `fitness_backup_${new Date().toISOString().split("T")[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+  // CÁLCULO DE RACHAS (STREAKS)
+  const currentStreak = useMemo(() => {
+    if (!appData || appData.length === 0) return 0;
+
+    const allDays = [];
+    appData.forEach((week) => {
+      for (let i = 0; i < 7; i++) {
+        const dayName = [
+          "Lunes",
+          "Martes",
+          "Miércoles",
+          "Jueves",
+          "Viernes",
+          "Sábado",
+          "Domingo",
+        ][i];
+
+        const hasNutrition = week.nutritionData?.some((d) => d.day === dayName);
+        const trainingObj = week.trainingData?.[i.toString()];
+        const hasTraining = trainingObj?.hasData === true;
+        const hasMobility = week.mobilityData?.some((d) => d.day === dayName);
+
+        const hasActivity = !!(hasNutrition || trainingObj || hasMobility);
+        const isRest = !hasTraining && !hasMobility;
+
+        allDays.push({ dayName, hasActivity, isRest });
+      }
+    });
+
+    let lastActiveIndex = allDays.length - 1;
+    while (lastActiveIndex >= 0 && !allDays[lastActiveIndex].hasActivity) {
+      lastActiveIndex--;
+    }
+
+    if (lastActiveIndex < 0) return 0;
+
+    let streak = 0;
+    let consecutiveRest = 0;
+
+    for (let i = lastActiveIndex; i >= 0; i--) {
+      const day = allDays[i];
+
+      if (!day.hasActivity) break;
+
+      if (day.isRest) {
+        consecutiveRest++;
+        if (consecutiveRest > 2) break;
+      } else {
+        consecutiveRest = 0;
+      }
+
+      streak++;
+    }
+
+    return streak;
   }, [appData]);
 
-  // Helper function to process imported file text and update state
+  const handleExport = useCallback(
+    (targetWeekLabel = null) => {
+      if (appData.length === 0) return;
+
+      let dataToExport = appData;
+      let fileName = `fitness_backup_completo_${new Date().toISOString().split("T")[0]}.json`;
+
+      if (targetWeekLabel) {
+        dataToExport = appData.filter((w) => w.weekLabel === targetWeekLabel);
+        const safeLabel = targetWeekLabel.replace(/[\/\s-]/g, "_");
+        fileName = `fitness_${safeLabel}.json`;
+      }
+
+      const dataStr = JSON.stringify(dataToExport, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    },
+    [appData],
+  );
+
   function processImportedFile(text, setAppData) {
     try {
       const imported = JSON.parse(text);
-      // Normalizar: siempre trabajar con array de semanas
       const incomingWeeks = Array.isArray(imported)
         ? imported
         : [imported.data || imported];
-
       if (incomingWeeks.length === 0) throw new Error("JSON vacío");
 
       setAppData((prevData) => {
         let updatedData = [...prevData];
-
         incomingWeeks.forEach((incomingWeek) => {
           mergeWeek(updatedData, incomingWeek);
         });
 
+        updatedData.sort((a, b) => a.weekLabel.localeCompare(b.weekLabel));
+
+        // Al importar, calculamos cuál es la semana a mostrar basada en los nuevos datos
+        setTimeout(() => setActiveWeek(getWeekIndexForToday(updatedData)), 0);
+
         return updatedData;
       });
 
-      alert(
-        `✅ Datos fusionados correctamente. Se actualizaron ${incomingWeeks.length} semana(s).`,
-      );
+      alert(`✅ Datos fusionados correctamente y ordenados cronológicamente.`);
     } catch (err) {
       console.error("Import Error:", err);
       alert("❌ Error: El archivo no es válido o está corrupto.");
     }
   }
 
-  // --- LÓGICA DE IMPORTACIÓN MEJORADA ---
   const handleImport = useCallback((e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Resetear el input para permitir importar el mismo archivo dos veces si es necesario
     e.target.value = null;
-
-    file.text().then((text) => {
-      processImportedFile(text, setAppData);
-    });
+    file.text().then((text) => processImportedFile(text, setAppData));
   }, []);
 
   return {
@@ -189,5 +280,6 @@ export function useFitnessData() {
     currentWeek,
     handleImport,
     handleExport,
+    currentStreak,
   };
 }

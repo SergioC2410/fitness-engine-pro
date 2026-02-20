@@ -1,171 +1,268 @@
-{
-    "metadata": {
-        "user": "Sergio",
-        "goal": "Recomposición Corporal (Meta 75kg)",
-        "version": "2026.PRO",
-        "lastUpdate": "2026-02-15T00:00:00Z"
-    },
-    "weeks": [
-        {
-            "weekLabel": "Semana 09/02 - 15/02",
-            "nutritionData": [
-                {
-                    "day": "Lunes",
-                    "date": "09/02",
-                    "totalKcal": 2250,
-                    "summary": "Día Sólido. Comida casera y buena proteína.",
-                    "meals": [
-                        {
-                            "type": "Desayuno",
-                            "item": "Pan con Mortadela y Queso",
-                            "kcal": 650
-                        },
-                        {
-                            "type": "Almuerzo",
-                            "item": "Pollo con Crema de Leche",
-                            "kcal": 850
-                        },
-                        {
-                            "type": "Cena",
-                            "item": "Pasta con Huevo",
-                            "kcal": 750
-                        }
-                    ]
-                },
-                {
-                    "day": "Viernes",
-                    "date": "13/02",
-                    "totalKcal": 2491,
-                    "summary": "Carga pre-entreno y alta densidad proteica.",
-                    "meals": [
-                        {
-                            "type": "Desayuno",
-                            "item": "Pan + 4 Huevos",
-                            "kcal": 910
-                        },
-                        {
-                            "type": "Gym",
-                            "item": "Rockstars (Energía)",
-                            "kcal": 320
-                        },
-                        {
-                            "type": "Almuerzo",
-                            "item": "21 Piezas Sushi",
-                            "kcal": 1001
-                        },
-                        {
-                            "type": "Cena",
-                            "item": "Batido Frappé",
-                            "kcal": 260
-                        }
-                    ]
-                },
-                {
-                    "day": "Sábado",
-                    "date": "14/02",
-                    "totalKcal": 2678,
-                    "summary": "Récord de Proteína (204g) alcanzado para carga de Basketball.",
-                    "meals": [
-                        {
-                            "type": "Desayuno",
-                            "item": "Huevos (3u) + Avena (100g) + Cambur",
-                            "kcal": 672
-                        },
-                        {
-                            "type": "Suplemento",
-                            "item": "Proteína Lifesystem (1 scoop)",
-                            "kcal": 110
-                        },
-                        {
-                            "type": "Almuerzo",
-                            "item": "Pollo (150g) + Arroz (250g) + Vegetales",
-                            "kcal": 532
-                        },
-                        {
-                            "type": "Cena",
-                            "item": "Pasta (100g) + Carne Molida (221g)",
-                            "kcal": 896
-                        },
-                        {
-                            "type": "Snack",
-                            "item": "Cotufas (40g Maíz)",
-                            "kcal": 140
-                        },
-                        {
-                            "type": "Ajuste",
-                            "item": "Aceites y Salsas (MFP)",
-                            "kcal": 328
-                        }
-                    ]
-                }
-            ],
-            "trainingData": {
-                "4": {
-                    "hasData": true,
-                    "title": "Torso B + Pierna B",
-                    "focus": "Compensación + Récords 🏆",
-                    "duration": "1h 23min",
-                    "volume": "6,175 kg",
-                    "sets": 25,
-                    "notes": "Sesión monstruosa. Récords en Jalón al pecho y volumen alto.",
-                    "exercises": [
-                        {
-                            "name": "Jalón al Pecho",
-                            "note": "🏆 PR 45kg x 10",
-                            "sets": [
-                                {
-                                    "weight": "40 kg",
-                                    "reps": 12
-                                },
-                                {
-                                    "weight": "45 kg",
-                                    "reps": 10
-                                },
-                                {
-                                    "weight": "40 kg",
-                                    "reps": 10
-                                }
-                            ]
-                        },
-                        {
-                            "name": "Remo Sentado",
-                            "sets": [
-                                {
-                                    "weight": "35 kg",
-                                    "reps": 10
-                                },
-                                {
-                                    "weight": "40 kg",
-                                    "reps": 8
-                                }
-                            ]
-                        },
-                        {
-                            "name": "Zancadas",
-                            "sets": [
-                                {
-                                    "weight": "10 kg",
-                                    "reps": "12m"
-                                },
-                                {
-                                    "weight": "10 kg",
-                                    "reps": "12m"
-                                }
-                            ]
-                        }
-                    ]
-                }
+import { useState, useEffect, useCallback, useMemo
+} from "react";
+
+const STORAGE_KEY = "sergio_fitness_data";
+const DAY_ORDER = {
+  Lunes: 1,
+  Martes: 2,
+  Miércoles: 3,
+  Jueves: 4,
+  Viernes: 5,
+  Sábado: 6,
+  Domingo: 7,
+};
+
+function mergeNutrition(oldNutri = [], newNutri = []) {
+  const mergedMap = new Map();
+  oldNutri.forEach((item) => mergedMap.set(item.day, item));
+  newNutri.forEach((item) => {
+    const existing = mergedMap.get(item.day) || {};
+    mergedMap.set(item.day,
+        { ...existing, ...item
+        });
+    });
+  return Array.from(mergedMap.values()).sort(
+    (a, b) => (DAY_ORDER[a.day
+    ] || 99) - (DAY_ORDER[b.day
+    ] || 99),
+  );
+}
+
+function mergeMobility(oldMob = [], newMob = []) {
+  const uniqueKeys = new Set();
+  const result = [];
+  const process = (list) => {
+    list.forEach((item) => {
+      const key = `${item.day
+            }-${item.activity
+            }-${item.distance
+            }`;
+      if (!uniqueKeys.has(key)) {
+        uniqueKeys.add(key);
+        result.push(item);
+            }
+        });
+    };
+  process(newMob);
+  process(oldMob);
+  return result.sort(
+    (a, b) => (DAY_ORDER[a.day
+    ] || 99) - (DAY_ORDER[b.day
+    ] || 99),
+  );
+}
+
+function mergeWeek(updatedData, incomingWeek) {
+  const index = updatedData.findIndex(
+    (w) => w.weekLabel === incomingWeek.weekLabel,
+  );
+
+  if (index === -1) {
+    updatedData.push(incomingWeek);
+    } else {
+    const existingWeek = updatedData[index
+        ];
+    updatedData[index
+        ] = {
+      ...existingWeek,
+      ...incomingWeek,
+      nutritionData: mergeNutrition(
+        existingWeek.nutritionData,
+        incomingWeek.nutritionData,
+      ),
+      trainingData: {
+        ...existingWeek.trainingData,
+        ...incomingWeek.trainingData,
             },
-            "mobilityData": [
-                {
-                    "day": "Viernes",
-                    "date": "13/02",
-                    "activity": "Ruta Centro",
-                    "duration": "38 min",
-                    "distance": "2.1 km",
-                    "notes": "Galerías Ávila -> Iglesia -> Bloque 3"
-                }
-            ]
+      mobilityData: mergeMobility(
+        existingWeek.mobilityData,
+        incomingWeek.mobilityData,
+      ),
+        };
+    }
+}
+
+export function useFitnessData() {
+  const [appData, setAppData
+    ] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+        } catch (error) {
+      console.error("Error init LocalStorage:", error);
+      return [];
         }
-    ]
+    });
+
+  // 🔥 CORRECCIÓN CRÍTICA: Inicializamos la app en la ÚLTIMA semana registrada (la más reciente)
+  const [activeWeek, setActiveWeek
+    ] = useState(() => {
+    return appData.length > 0 ? appData.length - 1 : 0;
+    });
+
+  useEffect(() => {
+    if (appData.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        }
+    },
+    [appData
+    ]);
+
+  const currentWeek = useMemo(
+    () => appData[activeWeek
+    ] || null,
+    [appData, activeWeek
+    ],
+  );
+
+  const currentStreak = useMemo(() => {
+    if (!appData || appData.length === 0) return 0;
+    
+    const allDays = [];
+    appData.forEach(week => {
+      for (let i = 0; i < 7; i++) {
+        const dayName = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
+                ][i
+                ];
+        
+        const hasNutrition = week.nutritionData?.some(d => d.day === dayName);
+        const trainingObj = week.trainingData?.[i.toString()
+                ];
+        const hasTraining = trainingObj?.hasData === true;
+        const hasMobility = week.mobilityData?.some(d => d.day === dayName);
+
+        const hasActivity = !!(hasNutrition || trainingObj || hasMobility);
+        const isRest = !hasTraining && !hasMobility; 
+
+        allDays.push({ dayName, hasActivity, isRest
+                });
+            }
+        });
+
+    let lastActiveIndex = allDays.length - 1;
+    while (lastActiveIndex >= 0 && !allDays[lastActiveIndex
+        ].hasActivity) {
+      lastActiveIndex--;
+        }
+
+    if (lastActiveIndex < 0) return 0; 
+
+    let streak = 0;
+    let consecutiveRest = 0;
+
+    for (let i = lastActiveIndex; i >= 0; i--) {
+      const day = allDays[i
+            ];
+
+      if (!day.hasActivity) break; 
+
+      if (day.isRest) {
+        consecutiveRest++;
+        if (consecutiveRest > 2) break;
+            } else {
+        consecutiveRest = 0;
+            }
+
+      streak++;
+        }
+
+    return streak;
+    },
+    [appData
+    ]);
+
+  const handleExport = useCallback((targetWeekLabel = null) => {
+    if (appData.length === 0) return;
+    
+    let dataToExport = appData;
+    let fileName = `fitness_backup_completo_${new Date().toISOString().split("T")[
+                0
+            ]
+        }.json`;
+
+    if (targetWeekLabel) {
+      dataToExport = appData.filter(w => w.weekLabel === targetWeekLabel);
+      const safeLabel = targetWeekLabel.replace(/[\/\s-
+            ]/g, '_');
+      fileName = `fitness_${safeLabel
+            }.json`;
+        }
+
+    const dataStr = JSON.stringify(dataToExport,
+        null,
+        2);
+    const blob = new Blob([dataStr
+        ],
+        { type: "application/json"
+        });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    },
+    [appData
+    ]);
+
+  function processImportedFile(text, setAppData) {
+    try {
+      const imported = JSON.parse(text);
+      const incomingWeeks = Array.isArray(imported)
+        ? imported
+        : [imported.data || imported
+            ];
+
+      if (incomingWeeks.length === 0) throw new Error("JSON vacío");
+
+      setAppData((prevData) => {
+        let updatedData = [...prevData
+                ];
+
+        incomingWeeks.forEach((incomingWeek) => {
+          mergeWeek(updatedData, incomingWeek);
+                });
+
+        updatedData.sort((a, b) => a.weekLabel.localeCompare(b.weekLabel));
+        
+        // 🔥 ACTUALIZACIÓN DE INTERFAZ: Saltar a la semana más reciente tras importar
+        setActiveWeek(updatedData.length - 1);
+        
+        return updatedData;
+            });
+
+      alert(
+        `✅ Datos fusionados correctamente.`,
+      );
+        } catch (err) {
+      console.error("Import Error:", err);
+      alert("❌ Error: El archivo no es válido o está corrupto.");
+        }
+    }
+
+  const handleImport = useCallback((e) => {
+    const file = e.target.files?.[
+            0
+        ];
+    if (!file) return;
+
+    e.target.value = null;
+
+    file.text().then((text) => {
+      processImportedFile(text, setAppData);
+        });
+    },
+    []);
+
+  return {
+    appData,
+    activeWeek,
+    setActiveWeek,
+    currentWeek,
+    handleImport,
+    handleExport,
+    currentStreak
+    };
 }
